@@ -1,13 +1,19 @@
 import React from 'react'
-import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import { BrowserRouter, Route, Routes } from "react-router-dom"
+import Chat from './components/Chat';
 
 
 function App() {
   return (
+    <BrowserRouter>
     <div>
-      <Navbar />
-      
+    <Routes>
+    <Route path="/" element={<Hero />} />
+    <Route path="/kyc" element={<Chat />} />
+    </Routes>
     </div>
+    </BrowserRouter>
   );
 }
 
