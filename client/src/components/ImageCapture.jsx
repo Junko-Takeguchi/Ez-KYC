@@ -66,3 +66,4 @@ const ImageCapture = ({ setCapturedImage }) => {
 };
 
 export default ImageCapture;
+
