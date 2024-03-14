@@ -6,6 +6,7 @@ import sendButton from "../assets/send.svg";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.module.css'
 import axios from 'axios';
+import dictionary from "../../public/translations";
 
 const Chat = ({ capturedImage }) => {
     const [selectedDate, setSelectedDate] = useState(null);
@@ -15,6 +16,8 @@ const Chat = ({ capturedImage }) => {
     const [dob, setDob] = useState("");
     const [turn, setTurn] = useState(0);
     const [refId, setRefId] = useState("");
+    const [imageData, setImageData] = useState(null);
+    const [phqId, setPhqId] = useState(null);
     const [language, setLanguage] = useState('en'); // Add language state
     const [currentQuestionId, setCurrentQuestionId] = useState(0); // Add currentQuestionId state
 
@@ -33,49 +36,6 @@ const Chat = ({ capturedImage }) => {
     useEffect(() => {
         console.log(refId); // Log refId whenever it changes
     }, [refId]);
-
-    const predefined_questions = {
-        en: {
-            translation: {
-                question0: "Hi, I am your online e-KYC assistant. Chat with me and get your e-KYC done.",
-                question1: "Hello! To get started with your e-KYC process, may I have your full Name, please?",
-                question2: "Thank you! Next, could you please provide your date of birth?",
-                question3: "Excellent! We're almost done. Could you please enter your 12 digit AADHAAR number?",
-                question4: "Please enter the OTP sent to the registered mobile number.",
-                question5: "Congratulations! Your KYC has been successfully completed."
-            }
-        },
-        hi: {
-            translation: {
-                question0: "नमस्ते, मैं आपका ऑनलाइन ई-केवाईसी सहायक हूँ। मुझसे चैट करें और अपनी ई-केवाईसी को पूरा करें।",
-                question1: "नमस्ते! आपकी ई-केवाईसी प्रक्रिया शुरू करने के लिए, क्या मैं आपका पूरा नाम जान सकता हूँ?",
-                question2: "धन्यवाद! अगला, क्या आप कृपया अपनी जन्म तिथि प्रदान कर सकते हैं?",
-                question3: "उत्कृष्ट! हम लगभग खत्म हो चुके हैं। क्या आप कृपया अपना 12 अंकों का आधार नंबर दे सकते हैं?",
-                question4: "कृपया पंजीकृत मोबाइल नंबर पर भेजे गए OTP को दर्ज करें।",
-                question5: "बधाई हो! आपकी केवाईसी सफलतापूर्वक पूरी हो गई है।"
-            }
-        },
-        bn: {
-            translation: {
-                question0: "হাই, আমি আপনার অনলাইন ই-কেওয়াইসি সহায়ক। আমার সাথে চ্যাট করুন এবং আপনার ই-কেওয়াইসি সম্পন্ন করুন।",
-                question1: "হ্যালো! আপনার ই-কেওয়াইসি প্রক্রিয়া শুরু করার জন্য, আমি কি আপনার পূরো নাম জানতে পারি?",
-                question2: "ধন্যবাদ! পরবর্তী, আপনি কি আপনার জন্ম তারিখ প্রদান করতে পারবেন?",
-                question3: "অসাধারণ! আমরা প্রায় সম্পূর্ণ হয়ে গেছি। আপনি কি দয়া করে আপনার 12 অংকের আধার নম্বর প্রবেশ করতে পারেন?",
-                question4: "দয়া করে নিবন্ধিত মোবাইল নম্বরে প্রেরিত ওটিপি প্রবেশ করুন।",
-                question5: "অভিনন্দন! আপনার কেওয়াইসি সফলভাবে সম্পন্ন হয়েছে।"
-            }
-        },
-        mr: {
-            translation: {
-                question0: "नमस्कार, मी तुमचे ऑनलाइन ई-केव्हायसी सहायक आहे। माझ्याशी चॅट करा आणि तुमची ई-केव्हायसी पूर्ण करा।",
-                question1: "नमस्कार! तुमच्या ई-केव्हायसी प्रक्रिया सुरू करण्यासाठी, काय मला तुमचे पूर्ण नाव मिळवू शकते?",
-                question2: "धन्यवाद! पुढे, कृपया तुमची जन्म तारीख प्रदान करू शकता का?",
-                question3: "उत्कृष्ट! आम्ही लवकरच संपले आहोत. कृपया आपला 12 अंकी आधार क्रमांक प्रविष्ट करा",
-                question4: "कृपया पंजीकृत मोबाइल नंबरवर पाठविलेल्या OTP प्रविष्ट करा।",
-                question5: "अभिनंदन! आपली केव्हायसी सफळतापूर्वक पूर्ण झाली आहे."
-            }
-        }
-    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -140,7 +100,9 @@ const Chat = ({ capturedImage }) => {
                 if (response.data.data.status === "VALID") {
                     const { name, care_of, dob, address, photo_link } = response.data.data;
                     console.log(photo_link);
-                    const cardMessage = `The OTP is verified successfully!!\n\nName: ${name}\nFather's Name: ${care_of}\nDate of Birth: ${dob}\nAddress: ${address}`
+                    setImageData(photo_link);
+                    setPhqId(currentQuestionId + 1);
+                    const cardMessage = `Your OTP and face has been verified successfully!!\n\nName: ${name}\nFather's Name: ${care_of}\nDate of Birth: ${dob}\nAddress: ${address}`
                     newUserMessage = {
                         text: cardMessage.split('\n').map((line, index) => <div key={index}>{line}<br /></div>), // Render line breaks as <br />
                         isBot: true,
@@ -170,7 +132,7 @@ const Chat = ({ capturedImage }) => {
             };
         }
 
-        const languageTranslation = predefined_questions[language].translation;
+        const languageTranslation = dictionary[language].translation;
         const newBotMessageText = languageTranslation[`question${newQuestionId}`];
         const newBotMessage = {
             text: newBotMessageText,
@@ -203,45 +165,49 @@ const Chat = ({ capturedImage }) => {
                                 <div className={"flex flex-col gap-3 rounded-lg overflow-hidden p-1.5 " + (message.isBot ? " bg-slate-100 text-slate-900 dark:text-slate-200 dark:bg-slate-900 border-b border-primary border-opacity-50 " : "")}>
                                     <div className="flex gap-3">
                                         <img className=' w-8 h-8 sm:w-10 sm:h-10 rounded-full ' src={message.isBot ? gptImgLogo : capturedImage} alt="" />
-                                        <p className=" mt-0.5 sm:mt-2">{message.text}</p>
-
+                                        <div className="flex flex-col gap-2">
+                                            {imageData && phqId && message.question_id === phqId && (
+                                                <img src={`data:image/jpeg;base64,${imageData}`} className="w-1/5" alt="Base64 Image" />
+                                            )}
+                                            <p className=" mt-0.5 sm:mt-2">{message.text}</p>
+                                        </div>
                                     </div>
                                     {message.question_id === 1 && message.isBot && <div className="pl-12 flex gap-2">
                                     <input
-    className="px-4 py-1 border border-neutral-300 rounded-md text-black" // Add text-black class here
-    type="text"
-    placeholder="First Name"
-    required
-    name="firstName"
-    value={firstName}
-    onChange={handleInputChange}
-/>
+                                        className="px-4 py-1 border border-neutral-300 rounded-md text-black" // Add text-black class here
+                                        type="text"
+                                        placeholder="First Name"
+                                        required
+                                        name="firstName"
+                                        value={firstName}
+                                        onChange={handleInputChange}
+                                    />
 
-<input
-    className="px-4 py-1 border border-neutral-300 rounded-md text-black" // Add text-black class here
-    type="text"
-    placeholder="Last Name"
-    required
-    name="lastName"
-    value={lastName}
-    onChange={handleInputChange}
-/>
+                                    <input
+                                        className="px-4 py-1 border border-neutral-300 rounded-md text-black" // Add text-black class here
+                                        type="text"
+                                        placeholder="Last Name"
+                                        required
+                                        name="lastName"
+                                        value={lastName}
+                                        onChange={handleInputChange}
+                                    />
                                         <button className="px-2 py-1 rounded-md b text-white bg-black hover:bg-slate-500 transition" onClick={handleSubmit}>Submit</button>
                                     </div>}
                                     {message.question_id === 2 && message.isBot && (
                                         <div className='text-black'>
                                         <DatePicker
-    selected={selectedDate}
-    onChange={date => setSelectedDate(date)}
-    isClearable
-    dateFormat='dd/MM/yyyy'
-    maxDate={new Date()}
-    showYearDropdown
-    scrollableMonthYearDropdown
-    className='text-black px-2 rounded-md p-2' // Add text-black class here
-    // Add the following props
-    placeholderText="Select Date"
-    value={selectedDate} // Set the value of the input field to the selected date
+                                            selected={selectedDate}
+                                            onChange={date => setSelectedDate(date)}
+                                            isClearable
+                                            dateFormat='dd/MM/yyyy'
+                                            maxDate={new Date()}
+                                            showYearDropdown
+                                            scrollableMonthYearDropdown
+                                            className='text-black px-2 rounded-md p-2' // Add text-black class here
+                                            // Add the following props
+                                            placeholderText="Select Date"
+                                            value={selectedDate} // Set the value of the input field to the selected date
 />
                                         <button className="px-2 py-1 rounded-md b text-white bg-black hover:bg-slate-500 transition" onClick={handleSubmit}>Submit</button>
                                         </div>
