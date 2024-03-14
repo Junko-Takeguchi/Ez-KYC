@@ -1,3 +1,4 @@
+// Import useEffect at the top of your component file
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import gptImgLogo from "../assets/images.png";
@@ -13,8 +14,8 @@ const Chat = ({ capturedImage }) => {
     const [lastName, setLastName] = useState("");
     const [dob, setDob] = useState("");
     const [turn, setTurn] = useState(0);
+    const [refId, setRefId] = useState("");
     const [currentQuestionId, setCurrentQuestionId] = useState(0); // Add currentQuestionId state
-
 
     const [chatHistory, setChatHistory] = useState([
         {
@@ -28,10 +29,15 @@ const Chat = ({ capturedImage }) => {
         console.log(chatHistory);
     }, [chatHistory]);
 
+    useEffect(() => {
+        console.log(refId); // Log refId whenever it changes
+    }, [refId]);
+
     const predefined_questions = [
         "Hello! To get started with your e-KYC process, may I have your full Name, please?",
         `Thank you, ${firstName}! Next, could you please provide your date of birth?`,
-        "Excellent! We're almost done. Could you please enter your 12 digit aadhar number?"
+        "Excellent! We're almost done. Could you please enter your 12 digit aadhar number?",
+        "Please enter the otp sent to the registered mobile number."
     ];
 
     const handleInputChange = (e) => {
@@ -79,9 +85,55 @@ const Chat = ({ capturedImage }) => {
                 try {
                     const response = await axios.post('http://localhost:3001/api/aadhaar/otp/send', { aadhaarNo: inputValue });
                     console.log(response.data);
+                    if(response.data.ref_id) {
+                        setRefId(response.data.ref_id);
+                    }
                 } catch (error) {
                     console.error("Error sending Aadhaar number:", error);
                 }
+            }
+            else if (currentQuestionId === 4) {
+                newUserMessage = {
+                    text: inputValue,
+                    isBot: false,
+                    question_id: currentQuestionId
+                };
+                try {
+                    const response = await axios.post('http://localhost:3001/api/aadhaar/otp/verify', { ref_id: refId, otp: inputValue });
+                    console.log(response.data);
+                    console.log(response.data.data.status);
+                    if (response.data.data.status === "VALID") {
+                        const { name, care_of, dob, address, photo_link} = response.data.data;
+                        console.log(photo_link);
+                        const cardMessage = `The OTP is verified successfully!!\n\nName: ${name}\nFather's Name: ${care_of}\nDate of Birth: ${dob}\nAddress: ${address}`;
+                        newUserMessage = {
+                            text: cardMessage.split('\n').map((line, index) => <div key={index}>{line}<br /></div>), // Render line breaks as <br />
+                            isBot: true,
+                            question_id: currentQuestionId + 1,
+                            imgSrc: photo_link
+                        };
+                    } else {
+                        newUserMessage = {
+                            text: "Invalid OTP. Please try again.",
+                            isBot: true,
+                            question_id: currentQuestionId
+                        };
+                    }
+                } catch (error) {
+                    console.error("Error verifying Aadhaar OTP:", error);
+                    newUserMessage = {
+                        text: "Error verifying Aadhaar OTP. Please try again later.",
+                        isBot: true,
+                        question_id: currentQuestionId
+                    };
+                }
+                
+                // Update chat history with the new user message
+                setChatHistory([...chatHistory, newUserMessage]);
+                
+                // Clear input field and increment question id
+                setInput('');
+                setCurrentQuestionId(currentQuestionId + 1);
             }
             else {
                 newUserMessage = {
@@ -125,10 +177,19 @@ const Chat = ({ capturedImage }) => {
                         {chatHistory.map((message, i) =>
                             <div key={i}>
                                 <div className={"flex flex-col gap-3 rounded-lg overflow-hidden p-1.5 " + (message.isBot ? " bg-slate-100 text-slate-900 dark:text-slate-200 dark:bg-slate-900 border-b border-primary border-opacity-50 " : "")}>
-                                    <div className="flex gap-3">
-                                        <img className=' w-8 h-8 sm:w-10 sm:h-10 rounded-full ' src={message.isBot ? gptImgLogo : capturedImage} alt="" />
-                                        <p className=" mt-0.5 sm:mt-2">{message.text}</p>
-                                    </div>
+                                <div className="flex gap-3">
+    <img className='w-8 h-8 sm:w-10 sm:h-10 rounded-full' src={message.isBot ? gptImgLogo : capturedImage} alt="" />
+    <div>
+        {message.imgSrc && (
+            <img src={message.imgSrc} className='w-1/5' alt="hello" />
+        )}
+        {typeof message.text === 'string' ? ( // Check if message.text is a string
+            <p className="mt-0.5 sm:mt-2">{message.text}</p> // Render as <p> tag if it's a string
+        ) : (
+            message.text // Render message.text as it is if it's not a string (it should be JSX)
+        )}
+    </div>
+</div>
                                     {message.question_id === 1 && message.isBot && <div className="pl-12 flex gap-2">
                                         <input
                                             className="px-4 py-1 border border-neutral-300 rounded-md"
@@ -166,6 +227,7 @@ const Chat = ({ capturedImage }) => {
                                         <button className="px-2 py-1 rounded-md b text-white bg-black hover:bg-slate-500 transition" onClick={handleSubmit}>Submit</button>
                                         </div>
                                     )}
+                                    
                                 </div>
                             </div>
                         )}
