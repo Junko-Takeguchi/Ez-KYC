@@ -1,17 +1,25 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import Hero from './components/Hero';
-import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Chat from './components/Chat';
-
+import ImageCapture from './components/ImageCapture'; // Assuming you create this component
 
 function App() {
-  const [lang, setLang] = useState("en");
+  const [capturedImage, setCapturedImage] = useState(null);
+
   return (
     <BrowserRouter>
-    <Routes>
-    <Route path="/" element={<Hero lang={lang} setLang={setLang}/>} />
-    <Route path="/kyc" element={<Chat lang={lang} setLang={setLang}/>} />
-    </Routes>
+      <div>
+        <Routes>
+          <Route path="/" element={<Hero />} />
+          <Route path="/capture-image" element={<ImageCapture setCapturedImage={setCapturedImage} />} />
+          {capturedImage ? (
+            <Route path="/kyc" element={<Chat capturedImage={capturedImage} />} />
+          ) : (
+            <Route path="/kyc" element={<Navigate to="/capture-image" />} />
+          )}
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }

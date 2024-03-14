@@ -1,15 +1,11 @@
 import React from 'react'
 import { ReactTyped } from "react-typed";
 import Navbar from './Navbar'
-import * as i18n from "i18next";
 
-const Hero = ({lang, setLang}) => {
+const Hero = () => {
   return (
     <div>
-    <Navbar lang={lang} handleChange={(s) => {
-      setLang(s);
-      i18n.changeLanguage(lang);
-    }}/>
+    <Navbar/>
     <div className="w-full bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300" >
     
       <div className='max-w-[800px] mt-[-96px] w-full h-screen mx-auto test-center flex flex-col justify-center'>
