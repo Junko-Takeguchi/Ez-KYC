@@ -1,3 +1,8 @@
+# Demo Videp
+
+https://github.com/Junko-Takeguchi/Ez-KYC/assets/98228883/70ccdf36-0cdf-4bb9-8eb9-da07893d61fa
+
+
 # Ez-KYC
 
 This project contains a client-side application built with Create React App and a server-side application using Express.js.
