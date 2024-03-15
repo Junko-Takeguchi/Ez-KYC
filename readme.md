@@ -1,4 +1,4 @@
-# Demo Videp
+# Demo Video
 
 https://github.com/Junko-Takeguchi/Ez-KYC/assets/98228883/70ccdf36-0cdf-4bb9-8eb9-da07893d61fa
 
